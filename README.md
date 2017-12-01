@@ -2,4 +2,4 @@
 
 a tool to read the header information of Diablo III cpk files
 
-<img src="https://imgur.com/khT35zt"></img>
+<img src="https://i.imgur.com/khT35zt.png"></img>
