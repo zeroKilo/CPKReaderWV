@@ -12,20 +12,20 @@ namespace CPKReaderWV
     {
         public struct HeaderStruct
         {
-            public uint Magic;
-            public uint Version;
-            public ulong Header08;
-            public uint Header10;
+            public uint MagicNumber;
+            public uint PackageVersion;
+            public ulong DecompressedFileSize;
+            public uint Flags;
             public uint FileCount;
-            public uint Header18;
-            public uint Header1C;
-            public uint Header20;
-            public uint Header24;
-            public uint Header28;
-            public uint Header2C;
-            public uint Header30;
-            public uint Header34;
-            public uint Header38;
+            public uint LocationCount;
+            public uint HeaderSector;
+            public uint FileSizeBitCount;
+            public uint FileLocationCountBitCount;
+            public uint FileLocationIndexBitCount;
+            public uint LocationBitCount;
+            public uint CompSectorToDecomOffsetBitCount;
+            public uint DecompSectorToCompSectorBitCount;
+            public uint CRC;
         }
         public uint fileSize;
         public HeaderStruct header;
@@ -78,49 +78,49 @@ namespace CPKReaderWV
         public void ReadHeader(Stream s)
         {
             header = new HeaderStruct();
-            header.Magic = ReadU32(s);
-            header.Version = ReadU32(s);
-            header.Header08 = ReadU64(s);
-            header.Header10 = ReadU32(s);
+            header.MagicNumber = ReadU32(s);
+            header.PackageVersion = ReadU32(s);
+            header.DecompressedFileSize = ReadU64(s);
+            header.Flags = ReadU32(s);
             header.FileCount = ReadU32(s);
-            header.Header18 = ReadU32(s);
-            header.Header1C = ReadU32(s);
-            header.Header20 = ReadU32(s);
-            header.Header24 = ReadU32(s);
-            header.Header28 = ReadU32(s);
-            header.Header2C = ReadU32(s);
-            header.Header30 = ReadU32(s);
-            header.Header34 = ReadU32(s);
-            header.Header38 = ReadU32(s);
+            header.LocationCount = ReadU32(s);
+            header.HeaderSector = ReadU32(s);
+            header.FileSizeBitCount = ReadU32(s);
+            header.FileLocationCountBitCount = ReadU32(s);
+            header.FileLocationIndexBitCount = ReadU32(s);
+            header.LocationBitCount = ReadU32(s);
+            header.CompSectorToDecomOffsetBitCount = ReadU32(s);
+            header.DecompSectorToCompSectorBitCount = ReadU32(s);
+            header.CRC = ReadU32(s);
             ReadU32(s);
         }
 
         public string PrintHeader()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Magic    : 0x" + header.Magic.ToString("X8"));
-            sb.AppendLine("Version  : 0x" + header.Version.ToString("X8"));
-            sb.AppendLine("Header08 : 0x" + header.Header08.ToString("X16"));
-            sb.AppendLine("Header10 : 0x" + header.Header10.ToString("X8"));
+            sb.AppendLine("Magic    : 0x" + header.MagicNumber.ToString("X8"));
+            sb.AppendLine("Version  : 0x" + header.PackageVersion.ToString("X8"));
+            sb.AppendLine("Header08 : 0x" + header.DecompressedFileSize.ToString("X16"));
+            sb.AppendLine("Header10 : 0x" + header.Flags.ToString("X8"));
             sb.AppendLine("Header14 : 0x" + header.FileCount.ToString("X8"));
-            sb.AppendLine("Header18 : 0x" + header.Header18.ToString("X8"));
-            sb.AppendLine("Header1C : 0x" + header.Header1C.ToString("X8"));
-            sb.AppendLine("Header20 : 0x" + header.Header20.ToString("X8"));
-            sb.AppendLine("Header24 : 0x" + header.Header24.ToString("X8"));
-            sb.AppendLine("Header28 : 0x" + header.Header28.ToString("X8"));
-            sb.AppendLine("Header2C : 0x" + header.Header2C.ToString("X8"));
-            sb.AppendLine("Header30 : 0x" + header.Header30.ToString("X8"));
-            sb.AppendLine("Header34 : 0x" + header.Header34.ToString("X8"));
-            sb.AppendLine("Header38 : 0x" + header.Header38.ToString("X8"));
+            sb.AppendLine("Header18 : 0x" + header.LocationCount.ToString("X8"));
+            sb.AppendLine("Header1C : 0x" + header.HeaderSector.ToString("X8"));
+            sb.AppendLine("Header20 : 0x" + header.FileSizeBitCount.ToString("X8"));
+            sb.AppendLine("Header24 : 0x" + header.FileLocationCountBitCount.ToString("X8"));
+            sb.AppendLine("Header28 : 0x" + header.FileLocationIndexBitCount.ToString("X8"));
+            sb.AppendLine("Header2C : 0x" + header.LocationBitCount.ToString("X8"));
+            sb.AppendLine("Header30 : 0x" + header.CompSectorToDecomOffsetBitCount.ToString("X8"));
+            sb.AppendLine("Header34 : 0x" + header.DecompSectorToCompSectorBitCount.ToString("X8"));
+            sb.AppendLine("Header38 : 0x" + header.CRC.ToString("X8"));
             return sb.ToString();
         }
 
         public void ReadBlock1(Stream s)
         {
             uint size = 0x40;
-            size += header.Header20;
-            size += header.Header24;
-            size += header.Header28;
+            size += header.FileSizeBitCount;
+            size += header.FileLocationCountBitCount;
+            size += header.FileLocationIndexBitCount;
             size *= header.FileCount;
             size += 7;
             size = size >> 3;
@@ -137,12 +137,12 @@ namespace CPKReaderWV
                 sb.Append(i.ToString("d6") + " : ");
                 ulong u1 = ReadBits(block1, pos, 0x40);
                 pos += 0x40;
-                ulong u2 = ReadBits(block1, pos, header.Header20);
-                pos += header.Header20;
-                ulong u3 = ReadBits(block1, pos, header.Header24);
-                pos += header.Header24;
-                ulong u4 = ReadBits(block1, pos, header.Header28);
-                pos += header.Header28;
+                ulong u2 = ReadBits(block1, pos, header.FileSizeBitCount);
+                pos += header.FileSizeBitCount;
+                ulong u3 = ReadBits(block1, pos, header.FileLocationCountBitCount);
+                pos += header.FileLocationCountBitCount;
+                ulong u4 = ReadBits(block1, pos, header.FileLocationIndexBitCount);
+                pos += header.FileLocationIndexBitCount;
                 sb.Append("0x" + u1.ToString("X16") + " 0x" + u2.ToString("X16") + " 0x" + u3.ToString("X16") + " 0x" + u4.ToString("X16"));
                 sb.AppendLine();
             }
@@ -151,7 +151,7 @@ namespace CPKReaderWV
 
         public void ReadBlock2(Stream s)
         {
-            uint size = header.Header2C * header.Header18;
+            uint size = header.LocationBitCount * header.LocationCount;
             size += 7;
             size = size >> 3;
             block2 = new byte[size];
@@ -162,11 +162,11 @@ namespace CPKReaderWV
         {
             StringBuilder sb = new StringBuilder();
             uint pos = 0;
-            for (int i = 0; i < header.Header18; i++)
+            for (int i = 0; i < header.LocationCount; i++)
             {
                 sb.Append(i.ToString("d6") + " : ");
-                ulong u1 = ReadBits(block2, pos, header.Header2C);
-                pos += header.Header2C;
+                ulong u1 = ReadBits(block2, pos, header.LocationBitCount);
+                pos += header.LocationBitCount;
                 sb.Append("0x" + u1.ToString("X8"));
                 sb.AppendLine();
             }
@@ -176,14 +176,14 @@ namespace CPKReaderWV
         public void ReadBlock3(Stream s)
         {
             uint a = 0x10000;
-            uint b = a * header.Header1C;
+            uint b = a * header.HeaderSector;
             b = fileSize - b;
             b += 0x3FFF;
             uint c = (b >> 0xD);
             c = (c >> 50);
             b += c;
             b = (b >> 0xE);
-            uint size = b * header.Header2C;
+            uint size = b * header.LocationBitCount;
             size += 7;
             size = (size >> 3);
             block3 = new byte[size];
@@ -194,12 +194,12 @@ namespace CPKReaderWV
         {
             StringBuilder sb = new StringBuilder();
             uint pos = 0;
-            uint count = (uint)(block3.Length * 8) / header.Header2C;
+            uint count = (uint)(block3.Length * 8) / header.LocationBitCount;
             for (int i = 0; i < count; i++)
             {
                 sb.Append(i.ToString("d6") + " : ");
-                ulong u1 = ReadBits(block3, pos, header.Header2C);
-                pos += header.Header2C;
+                ulong u1 = ReadBits(block3, pos, header.LocationBitCount);
+                pos += header.LocationBitCount;
                 sb.Append("0x" + u1.ToString("X8"));
                 sb.AppendLine();
             }
@@ -209,14 +209,14 @@ namespace CPKReaderWV
         public void ReadBlock4(Stream s)
         {
             uint a = 0x10000;
-            uint b = a * header.Header1C;
+            uint b = a * header.HeaderSector;
             b = fileSize - b;
             b += 0x3FFF;
             uint c = (b >> 0xD);
             c = (c >> 50);
             b += c;
             b = (b >> 0xE);
-            uint d = (uint)header.Header08 + 0x3FFF;
+            uint d = (uint)header.DecompressedFileSize + 0x3FFF;
             uint e = (d >> 0xD);
             e = (e >> 50);
             d += e;
