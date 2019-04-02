@@ -216,7 +216,7 @@
             // 
             // hb3
             // 
-            this.hb3.BoldFont = null;
+            this.hb3.SetBoldFont(null);
             this.hb3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.hb3.Font = new System.Drawing.Font("Consolas", 8.25F);
             this.hb3.LineInfoForeColor = System.Drawing.Color.Empty;
@@ -317,7 +317,7 @@
             // 
             // hb1
             // 
-            this.hb1.BoldFont = null;
+            this.hb1.SetBoldFont(null);
             this.hb1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.hb1.Font = new System.Drawing.Font("Consolas", 8.25F);
             this.hb1.LineInfoForeColor = System.Drawing.Color.Empty;

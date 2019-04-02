@@ -8,12 +8,62 @@ using System.Threading.Tasks;
 
 namespace CPKReaderWV
 {
+    public enum CPKArchive
+    {
+        CPK_FLAG_VALID                  = 0,
+        CPK_FLAG_COMPRESSED             = 1,
+        CPK_FLAG_FROM_MEMORY            = 2,
+        CPK_FLAG_COMPACT_SECTORS        = 3,
+        CPK_FLAG_PENDING_WRITE          = 4,
+        CPK_FLAG_READ_AHEAD_VALID       = 5,
+        CPK_FLAG_CLOSING                = 6,
+        CPK_FLAG_BASE_ARCHIVE_LAST_FLAG = 5,
+        CPK_FLAG_RUNTIME_FLAGS          = 0x35,
+    }
+
+    public enum CPKArchiveSizes
+    {
+        CPK_COMP_SECTOR_SIZE       = 0x4000,
+        CPK_COMP_READ_CHUNK_SIZE   = 0x4000,
+        CPK_READ_SECTOR_SIZE       = 0x10000,
+        CPK_MAX_DECOMP_BUFFER_SIZE = 0x10000,
+    }
+
+    public enum CPKArchiveTypes
+    {
+        CPK_ARCHIVE_TYPE_STANDARD = 1,
+        CPK_ARCHIVE_TYPE_CACHE    = 2,
+    }
+
+    public enum Results
+    {
+        IORESULTS_SUCCESS               = 0,
+        IORESULTS_CANCELED              = 1,
+        IORESULTS_FILE_NOT_FOUND        = 2,
+        IORESULTS_FILE_IO_ERROR         = 3,
+        IORESULTS_WRONG_VERSION         = 4,
+        IORESULTS_INVALID_HEADER        = 5,
+        IORESULTS_COMPRESSION_ERROR     = 6,
+        IORESULTS_CRC_VALIDATION_FAILED = 7,
+        IORESULTS_NOT_ENOUGHT_SPACE     = 8,
+        IORESULTS_FAILED                = 9,
+    }
+
     public class CPKFile
     {
+        public struct FileInfo //sizeof = 0x18 , align = 0x8
+        {
+            public ulong dwHash;
+            public uint nSize;
+            public uint nLocationCount;
+            public uint nLocationIndex;
+            public uint nLocationIndexOverride;
+        }
+
         public struct HeaderStruct
         {
-            public uint MagicNumber;
-            public uint PackageVersion;
+            public uint MagicNumber; //always CPK_MAGIC_NUMBER = 0xA1B2C3D4 
+            public uint PackageVersion; // using CPK_VERSION = 7,
             public ulong DecompressedFileSize;
             public uint Flags;
             public uint FileCount;
