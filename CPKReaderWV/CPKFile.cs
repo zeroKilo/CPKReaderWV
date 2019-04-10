@@ -232,7 +232,7 @@ namespace CPKReaderWV
 
         public void ReadBlock3(Stream s)
         {
-            uint a = 0x10000;
+            uint a = (uint)CPKArchiveSizes.CPK_READ_SECTOR_SIZE;
             uint b = a * header.HeaderSector;
             b = fileSize - b;
             b += 0x3FFF;
@@ -265,7 +265,7 @@ namespace CPKReaderWV
 
         public void ReadBlock4(Stream s)
         {
-            uint a = 0x10000;
+            uint a = (uint)CPKArchiveSizes.CPK_READ_SECTOR_SIZE;
             uint b = a * header.HeaderSector;
             b = fileSize - b;
             b += 0x3FFF;
