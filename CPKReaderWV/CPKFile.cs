@@ -10,43 +10,43 @@ namespace CPKReaderWV
 {
     public enum CPKArchive
     {
-        CPK_FLAG_VALID                  = 0,
-        CPK_FLAG_COMPRESSED             = 1,
-        CPK_FLAG_FROM_MEMORY            = 2,
-        CPK_FLAG_COMPACT_SECTORS        = 3,
-        CPK_FLAG_PENDING_WRITE          = 4,
-        CPK_FLAG_READ_AHEAD_VALID       = 5,
-        CPK_FLAG_CLOSING                = 6,
+        CPK_FLAG_VALID = 0,
+        CPK_FLAG_COMPRESSED = 1,
+        CPK_FLAG_FROM_MEMORY = 2,
+        CPK_FLAG_COMPACT_SECTORS = 3,
+        CPK_FLAG_PENDING_WRITE = 4,
+        CPK_FLAG_READ_AHEAD_VALID = 5,
+        CPK_FLAG_CLOSING = 6,
         CPK_FLAG_BASE_ARCHIVE_LAST_FLAG = 5,
-        CPK_FLAG_RUNTIME_FLAGS          = 0x35,
+        CPK_FLAG_RUNTIME_FLAGS = 0x35,
     }
 
     public enum CPKArchiveSizes
     {
-        CPK_COMP_SECTOR_SIZE       = 0x4000,
-        CPK_COMP_READ_CHUNK_SIZE   = 0x4000,
-        CPK_READ_SECTOR_SIZE       = 0x10000,
+        CPK_COMP_SECTOR_SIZE = 0x4000,
+        CPK_COMP_READ_CHUNK_SIZE = 0x4000,
+        CPK_READ_SECTOR_SIZE = 0x10000,
         CPK_MAX_DECOMP_BUFFER_SIZE = 0x10000,
     }
 
     public enum CPKArchiveTypes
     {
         CPK_ARCHIVE_TYPE_STANDARD = 1,
-        CPK_ARCHIVE_TYPE_CACHE    = 2,
+        CPK_ARCHIVE_TYPE_CACHE = 2,
     }
 
     public enum Results
     {
-        IORESULTS_SUCCESS               = 0,
-        IORESULTS_CANCELED              = 1,
-        IORESULTS_FILE_NOT_FOUND        = 2,
-        IORESULTS_FILE_IO_ERROR         = 3,
-        IORESULTS_WRONG_VERSION         = 4,
-        IORESULTS_INVALID_HEADER        = 5,
-        IORESULTS_COMPRESSION_ERROR     = 6,
+        IORESULTS_SUCCESS = 0,
+        IORESULTS_CANCELED = 1,
+        IORESULTS_FILE_NOT_FOUND = 2,
+        IORESULTS_FILE_IO_ERROR = 3,
+        IORESULTS_WRONG_VERSION = 4,
+        IORESULTS_INVALID_HEADER = 5,
+        IORESULTS_COMPRESSION_ERROR = 6,
         IORESULTS_CRC_VALIDATION_FAILED = 7,
-        IORESULTS_NOT_ENOUGHT_SPACE     = 8,
-        IORESULTS_FAILED                = 9,
+        IORESULTS_NOT_ENOUGHT_SPACE = 8,
+        IORESULTS_FAILED = 9,
     }
 
     public class CPKFile
@@ -60,10 +60,10 @@ namespace CPKReaderWV
             public uint nLocationIndexOverride;
         }
 
-        public struct HeaderStruct
+        public struct HeaderStruct // using CPK_VERSION = 6,
         {
-            public uint MagicNumber; //always CPK_MAGIC_NUMBER = 0xA1B2C3D4 
-            public uint PackageVersion; // using CPK_VERSION = 7,
+            public uint MagicNumber; //always CPK_MAGIC_NUMBER = A1B2C3D4 
+            public uint PackageVersion;
             public ulong DecompressedFileSize;
             public uint Flags;
             public uint FileCount;
@@ -76,10 +76,12 @@ namespace CPKReaderWV
             public uint CompSectorToDecomOffsetBitCount;
             public uint DecompSectorToCompSectorBitCount;
             public uint CRC;
+            public uint unknown;
         }
         public uint fileSize;
         public HeaderStruct header;
-        public byte[] block1;
+        public FileInfo[] fileinfo;
+        public byte[] BFileInfo;
         public byte[] block2;
         public byte[] block3;
         public byte[] block4;
@@ -113,7 +115,7 @@ namespace CPKReaderWV
                 pos += 0x10000;
             fileOffsets = new Dictionary<uint, uint>();
             s.Seek(pos, 0);
-            while(true)
+            while (true)
             {
                 pos = (uint)s.Position;
                 ushort unk1 = ReadU16(s);
@@ -142,26 +144,26 @@ namespace CPKReaderWV
             header.CompSectorToDecomOffsetBitCount = ReadU32(s);
             header.DecompSectorToCompSectorBitCount = ReadU32(s);
             header.CRC = ReadU32(s);
-            ReadU32(s);
+            header.unknown = ReadU32(s); //always 0
         }
 
         public string PrintHeader()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Magic    : 0x" + header.MagicNumber.ToString("X8"));
-            sb.AppendLine("Version  : 0x" + header.PackageVersion.ToString("X8"));
-            sb.AppendLine("Header08 : 0x" + header.DecompressedFileSize.ToString("X16"));
-            sb.AppendLine("Header10 : 0x" + header.Flags.ToString("X8"));
-            sb.AppendLine("Header14 : 0x" + header.FileCount.ToString("X8"));
-            sb.AppendLine("Header18 : 0x" + header.LocationCount.ToString("X8"));
-            sb.AppendLine("Header1C : 0x" + header.HeaderSector.ToString("X8"));
-            sb.AppendLine("Header20 : 0x" + header.FileSizeBitCount.ToString("X8"));
-            sb.AppendLine("Header24 : 0x" + header.FileLocationCountBitCount.ToString("X8"));
-            sb.AppendLine("Header28 : 0x" + header.FileLocationIndexBitCount.ToString("X8"));
-            sb.AppendLine("Header2C : 0x" + header.LocationBitCount.ToString("X8"));
-            sb.AppendLine("Header30 : 0x" + header.CompSectorToDecomOffsetBitCount.ToString("X8"));
-            sb.AppendLine("Header34 : 0x" + header.DecompSectorToCompSectorBitCount.ToString("X8"));
-            sb.AppendLine("Header38 : 0x" + header.CRC.ToString("X8"));
+            sb.AppendLine("MagicNumber    : 0x" + header.MagicNumber.ToString("X8"));
+            sb.AppendLine("PackageVersion  : 0x" + header.PackageVersion.ToString("X8"));
+            sb.AppendLine("DecompressedFileSize : 0x" + header.DecompressedFileSize.ToString("X16"));
+            sb.AppendLine("Flags : 0x" + header.Flags.ToString("X8"));
+            sb.AppendLine("FileCount : 0x" + header.FileCount.ToString("X8"));
+            sb.AppendLine("LocationCount : 0x" + header.LocationCount.ToString("X8"));
+            sb.AppendLine("HeaderSector : 0x" + header.HeaderSector.ToString("X8"));
+            sb.AppendLine("FileSizeBitCount : 0x" + header.FileSizeBitCount.ToString("X8"));
+            sb.AppendLine("FileLocationCountBitCount : 0x" + header.FileLocationCountBitCount.ToString("X8"));
+            sb.AppendLine("FileLocationIndexBitCount : 0x" + header.FileLocationIndexBitCount.ToString("X8"));
+            sb.AppendLine("LocationBitCount : 0x" + header.LocationBitCount.ToString("X8"));
+            sb.AppendLine("CompSectorToDecomOffsetBitCount : 0x" + header.CompSectorToDecomOffsetBitCount.ToString("X8"));
+            sb.AppendLine("DecompSectorToCompSectorBitCount : 0x" + header.DecompSectorToCompSectorBitCount.ToString("X8"));
+            sb.AppendLine("CRC : 0x" + header.CRC.ToString("X8"));
             return sb.ToString();
         }
 
@@ -174,26 +176,31 @@ namespace CPKReaderWV
             size *= header.FileCount;
             size += 7;
             size = size >> 3;
-            block1 = new byte[size];
-            s.Read(block1, 0, (int)size);
+            BFileInfo = new byte[size];
+            s.Read(BFileInfo, 0, (int)size);
         }
 
         public string PrintBlock1()
         {
+            fileinfo = new FileInfo[header.FileCount];
             StringBuilder sb = new StringBuilder();
             uint pos = 0;
             for (int i = 0; i < header.FileCount; i++)
             {
                 sb.Append(i.ToString("d6") + " : ");
-                ulong u1 = ReadBits(block1, pos, 0x40);
+                ulong u1 = ReadBits(BFileInfo, pos, 0x40);
+                fileinfo[i].dwHash = u1;
                 pos += 0x40;
-                ulong u2 = ReadBits(block1, pos, header.FileSizeBitCount);
+                ulong u2 = ReadBits(BFileInfo, pos, header.FileSizeBitCount);
+                fileinfo[i].nSize = (uint)u2;
                 pos += header.FileSizeBitCount;
-                ulong u3 = ReadBits(block1, pos, header.FileLocationCountBitCount);
+                ulong u3 = ReadBits(BFileInfo, pos, header.FileLocationCountBitCount);
+                fileinfo[i].nLocationCount = (uint)u3;
                 pos += header.FileLocationCountBitCount;
-                ulong u4 = ReadBits(block1, pos, header.FileLocationIndexBitCount);
+                ulong u4 = ReadBits(BFileInfo, pos, header.FileLocationIndexBitCount);
+                fileinfo[i].nLocationIndex = (uint)u4;
                 pos += header.FileLocationIndexBitCount;
-                sb.Append("0x" + u1.ToString("X16") + " 0x" + u2.ToString("X16") + " 0x" + u3.ToString("X16") + " 0x" + u4.ToString("X16"));
+                sb.Append("Hash: " + u1.ToString("X16") + " Size: " + u2.ToString() + " LocationCount: " + u3.ToString() + " LocationIndex: " + u4.ToString());
                 sb.AppendLine();
             }
             return sb.ToString();
@@ -357,7 +364,7 @@ namespace CPKReaderWV
                 uint bytePos = pos / 8;
                 uint byteBit = 7 - pos % 8;
                 result = result << 1;
-                if ((buff[bytePos] & (1 << (int)byteBit)) != 0) 
+                if ((buff[bytePos] & (1 << (int)byteBit)) != 0)
                     result |= 1;
             }
             return result;
