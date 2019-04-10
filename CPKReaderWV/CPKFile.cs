@@ -150,20 +150,20 @@ namespace CPKReaderWV
         public string PrintHeader()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("MagicNumber    : 0x" + header.MagicNumber.ToString("X8"));
-            sb.AppendLine("PackageVersion  : 0x" + header.PackageVersion.ToString("X8"));
-            sb.AppendLine("DecompressedFileSize : 0x" + header.DecompressedFileSize.ToString("X16"));
-            sb.AppendLine("Flags : 0x" + header.Flags.ToString("X8"));
-            sb.AppendLine("FileCount : 0x" + header.FileCount.ToString("X8"));
-            sb.AppendLine("LocationCount : 0x" + header.LocationCount.ToString("X8"));
-            sb.AppendLine("HeaderSector : 0x" + header.HeaderSector.ToString("X8"));
-            sb.AppendLine("FileSizeBitCount : 0x" + header.FileSizeBitCount.ToString("X8"));
-            sb.AppendLine("FileLocationCountBitCount : 0x" + header.FileLocationCountBitCount.ToString("X8"));
-            sb.AppendLine("FileLocationIndexBitCount : 0x" + header.FileLocationIndexBitCount.ToString("X8"));
-            sb.AppendLine("LocationBitCount : 0x" + header.LocationBitCount.ToString("X8"));
-            sb.AppendLine("CompSectorToDecomOffsetBitCount : 0x" + header.CompSectorToDecomOffsetBitCount.ToString("X8"));
-            sb.AppendLine("DecompSectorToCompSectorBitCount : 0x" + header.DecompSectorToCompSectorBitCount.ToString("X8"));
-            sb.AppendLine("CRC : 0x" + header.CRC.ToString("X8"));
+            sb.AppendLine("MagicNumber    : " + header.MagicNumber.ToString("X8"));
+            sb.AppendLine("PackageVersion  : " + header.PackageVersion.ToString());
+            sb.AppendLine("DecompressedFileSize : " + header.DecompressedFileSize.ToString());
+            sb.AppendLine("Flags : " + header.Flags.ToString());
+            sb.AppendLine("FileCount : " + header.FileCount.ToString());
+            sb.AppendLine("LocationCount : " + header.LocationCount.ToString());
+            sb.AppendLine("HeaderSector : " + header.HeaderSector.ToString());
+            sb.AppendLine("FileSizeBitCount : " + header.FileSizeBitCount.ToString());
+            sb.AppendLine("FileLocationCountBitCount : " + header.FileLocationCountBitCount.ToString());
+            sb.AppendLine("FileLocationIndexBitCount : " + header.FileLocationIndexBitCount.ToString());
+            sb.AppendLine("LocationBitCount : " + header.LocationBitCount.ToString());
+            sb.AppendLine("CompSectorToDecomOffsetBitCount : " + header.CompSectorToDecomOffsetBitCount.ToString());
+            sb.AppendLine("DecompSectorToCompSectorBitCount : " + header.DecompSectorToCompSectorBitCount.ToString());
+            sb.AppendLine("CRC : " + header.CRC.ToString(""));
             return sb.ToString();
         }
 
