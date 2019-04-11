@@ -38,7 +38,7 @@ namespace CPKReaderWV
         {
             rtb1.Text = cpk.PrintHeader();
             rtb2.Text = cpk.PrintBlock1();
-            rtb3.Text = cpk.PrintBlock2();
+            rtb3.Text = cpk.PrintLocation();
             rtb4.Text = cpk.PrintBlock3();
             hb3.ByteProvider = new DynamicByteProvider(cpk.block4);
             listBox1.Items.Clear();

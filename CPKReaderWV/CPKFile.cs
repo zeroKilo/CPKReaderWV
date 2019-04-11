@@ -99,7 +99,7 @@ namespace CPKReaderWV
             fs.Seek(0, 0);
             ReadHeader(fs);
             ReadBlock1(fs);
-            ReadBlock2(fs);
+            ReadLocation(fs);
             ReadBlock3(fs);
             ReadBlock4(fs);
             ReadBlock5(fs);
@@ -206,7 +206,7 @@ namespace CPKReaderWV
             return sb.ToString();
         }
 
-        public void ReadBlock2(Stream s)
+        public void ReadLocation(Stream s)
         {
             uint size = header.LocationBitCount * header.LocationCount;
             size += 7;
@@ -215,7 +215,7 @@ namespace CPKReaderWV
             s.Read(block2, 0, (int)size);
         }
 
-        public string PrintBlock2()
+        public string PrintLocation()
         {
             StringBuilder sb = new StringBuilder();
             uint pos = 0;
@@ -232,15 +232,14 @@ namespace CPKReaderWV
 
         public void ReadBlock3(Stream s)
         {
-            uint a = (uint)CPKArchiveSizes.CPK_READ_SECTOR_SIZE;
-            uint b = a * header.HeaderSector;
-            b = fileSize - b;
-            b += 0x3FFF;
-            uint c = (b >> 0xD);
+            uint HeaderSize = (uint)CPKArchiveSizes.CPK_READ_SECTOR_SIZE * header.HeaderSector;
+            HeaderSize = fileSize - HeaderSize;
+            HeaderSize += 0x3FFF;
+            uint c = (HeaderSize >> 0xD);
             c = (c >> 50);
-            b += c;
-            b = (b >> 0xE);
-            uint size = b * header.LocationBitCount;
+            HeaderSize += c;
+            HeaderSize = (HeaderSize >> 0xE);
+            uint size = HeaderSize * header.LocationBitCount;
             size += 7;
             size = (size >> 3);
             block3 = new byte[size];
@@ -265,20 +264,19 @@ namespace CPKReaderWV
 
         public void ReadBlock4(Stream s)
         {
-            uint a = (uint)CPKArchiveSizes.CPK_READ_SECTOR_SIZE;
-            uint b = a * header.HeaderSector;
-            b = fileSize - b;
-            b += 0x3FFF;
-            uint c = (b >> 0xD);
+            uint HeaderSize = (uint)CPKArchiveSizes.CPK_READ_SECTOR_SIZE * header.HeaderSector;
+            HeaderSize = fileSize - HeaderSize;
+            HeaderSize += 0x3FFF;
+            uint c = (HeaderSize >> 0xD);
             c = (c >> 50);
-            b += c;
-            b = (b >> 0xE);
+            HeaderSize += c;
+            HeaderSize = (HeaderSize >> 0xE);
             uint d = (uint)header.DecompressedFileSize + 0x3FFF;
             uint e = (d >> 0xD);
             e = (e >> 50);
             d += e;
             uint f = (d >> 0xE);
-            uint g = GetHighestBit(b);
+            uint g = GetHighestBit(HeaderSize);
             uint size = f * g;
             size += 7;
             size = (size >> 3);
