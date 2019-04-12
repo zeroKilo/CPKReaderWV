@@ -84,13 +84,13 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(100, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -142,7 +142,7 @@
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage2.Size = new System.Drawing.Size(631, 394);
             this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Block 1";
+            this.tabPage2.Text = "HashTable";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // rtb2
@@ -216,7 +216,7 @@
             // 
             // hb3
             // 
-            //this.hb3.SetBoldFont(null);
+            this.hb3.BoldFont = null;
             this.hb3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.hb3.Font = new System.Drawing.Font("Consolas", 8.25F);
             this.hb3.LineInfoForeColor = System.Drawing.Color.Empty;
@@ -317,7 +317,7 @@
             // 
             // hb1
             // 
-            //this.hb1.SetBoldFont(null);
+            this.hb1.BoldFont = null;
             this.hb1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.hb1.Font = new System.Drawing.Font("Consolas", 8.25F);
             this.hb1.LineInfoForeColor = System.Drawing.Color.Empty;

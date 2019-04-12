@@ -51,7 +51,7 @@ namespace CPKReaderWV
 
     public class CPKFile
     {
-        public struct FileInfo //sizeof = 0x18 , align = 0x8
+        public struct FileInfo //sizeof = 0x18 , align = 0x8 => HashTable info
         {
             public ulong dwHash;
             public uint nSize;
@@ -60,6 +60,15 @@ namespace CPKReaderWV
             public uint nLocationIndexOverride;
         }
 
+        //version 6
+        //nCurrentReadOffset = 64; // (Int64)
+        //nReadSectorSize = 0x10000;
+        //nCompSectorSize = 0x4000;
+        //version 7
+        //nReadSectorSize_var = read from HeaderStruct;
+        //nCompSectorSize = read from HeaderStruct;
+        //nCurrentReadOffset = 72; // (Int64)
+\
         public struct HeaderStruct // using CPK_VERSION = 6,
         {
             public uint MagicNumber; //always CPK_MAGIC_NUMBER = A1B2C3D4 
