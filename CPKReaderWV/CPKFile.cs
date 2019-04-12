@@ -86,6 +86,8 @@ namespace CPKReaderWV
             public uint DecompSectorToCompSectorBitCount;
             public uint CRC;
             public uint unknown;
+            //public Int32 nReadSectorSize;
+            //public Int32 nCompSectorSize;
         }
         public uint fileSize;
         public HeaderStruct header;
@@ -374,6 +376,19 @@ namespace CPKReaderWV
                 if ((buff[bytePos] & (1 << (int)byteBit)) != 0)
                     result |= 1;
             }
+            return result;
+        }
+
+        public ulong Hash64(string name)
+        {
+            char[] v1 = name.ToCharArray(); 
+            UInt64 result = 0xCBF29CE484222325L;
+            int strlen = name.Length;
+            if (strlen > 0)
+                {
+                        for(int i=0;i<strlen;i++)
+                        result = 0x100000001B3L * (result ^ v1[i]);
+                }
             return result;
         }
     }
