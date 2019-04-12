@@ -391,5 +391,17 @@ namespace CPKReaderWV
                 }
             return result;
         }
+
+        public ulong Hash64More(string data, UInt64 previousHash)
+        {
+            char[] v1 = data.ToCharArray();
+            int strlen = data.Length;
+            if (strlen > 0)
+            {
+                for (int i = 0; i < strlen; i++)
+                    previousHash = 0x100000001B3L * (v1[i] ^ previousHash);
+            }
+            return previousHash;
+        }
     }
 }
