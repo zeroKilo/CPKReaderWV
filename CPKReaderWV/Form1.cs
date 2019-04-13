@@ -15,7 +15,7 @@ namespace CPKReaderWV
 {
     public partial class Form1 : Form
     {
-        public CPKFile cpk;
+        public CPKReader cpk;
 
         public Form1()
         {
@@ -29,7 +29,7 @@ namespace CPKReaderWV
             if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 status.Text = d.FileName;
-                cpk = new CPKFile(d.FileName);
+                cpk = new CPKReader(d.FileName);
                 RefreshAll();
             }
         }
