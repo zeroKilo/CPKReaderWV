@@ -8,47 +8,6 @@ using System.Threading.Tasks;
 
 namespace CPKReaderWV
 {
-    public enum CPKArchive
-    {
-        CPK_FLAG_VALID = 0,
-        CPK_FLAG_COMPRESSED = 1,
-        CPK_FLAG_FROM_MEMORY = 2,
-        CPK_FLAG_COMPACT_SECTORS = 3,
-        CPK_FLAG_PENDING_WRITE = 4,
-        CPK_FLAG_READ_AHEAD_VALID = 5,
-        CPK_FLAG_CLOSING = 6,
-        CPK_FLAG_BASE_ARCHIVE_LAST_FLAG = 5,
-        CPK_FLAG_RUNTIME_FLAGS = 0x35,
-    }
-
-    public enum CPKArchiveSizes
-    {
-        CPK_COMP_SECTOR_SIZE = 0x4000,
-        CPK_COMP_READ_CHUNK_SIZE = 0x4000,
-        CPK_READ_SECTOR_SIZE = 0x10000,
-        CPK_MAX_DECOMP_BUFFER_SIZE = 0x10000,
-    }
-
-    public enum CPKArchiveTypes
-    {
-        CPK_ARCHIVE_TYPE_STANDARD = 1,
-        CPK_ARCHIVE_TYPE_CACHE = 2,
-    }
-
-    public enum Results
-    {
-        IORESULTS_SUCCESS = 0,
-        IORESULTS_CANCELED = 1,
-        IORESULTS_FILE_NOT_FOUND = 2,
-        IORESULTS_FILE_IO_ERROR = 3,
-        IORESULTS_WRONG_VERSION = 4,
-        IORESULTS_INVALID_HEADER = 5,
-        IORESULTS_COMPRESSION_ERROR = 6,
-        IORESULTS_CRC_VALIDATION_FAILED = 7,
-        IORESULTS_NOT_ENOUGHT_SPACE = 8,
-        IORESULTS_FAILED = 9,
-    }
-
     public class CPKFile
     {
         public struct FileInfo //sizeof = 0x18 , align = 0x8 => HashTable info
@@ -68,7 +27,7 @@ namespace CPKReaderWV
         //nReadSectorSize_var = read from HeaderStruct;
         //nCompSectorSize = read from HeaderStruct;
         //nCurrentReadOffset = 72; // (Int64)
-\
+
         public struct HeaderStruct // using CPK_VERSION = 6,
         {
             public uint MagicNumber; //always CPK_MAGIC_NUMBER = A1B2C3D4 
@@ -100,10 +59,12 @@ namespace CPKReaderWV
         public string[] fileNames;
         public Dictionary<uint, uint> fileOffsets;
         public string cpkpath;
+        public helper help;
 
         public CPKFile(string path)
         {
             cpkpath = path;
+            help = new helper();
             FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read);
             fs.Seek(0, SeekOrigin.End);
             fileSize = (uint)fs.Position;
@@ -129,9 +90,9 @@ namespace CPKReaderWV
             while (true)
             {
                 pos = (uint)s.Position;
-                ushort unk1 = ReadU16(s);
-                ushort unk2 = ReadU16(s);
-                ushort size = ReadU16(s);
+                ushort unk1 = help.ReadU16(s);
+                ushort unk2 = help.ReadU16(s);
+                ushort size = help.ReadU16(s);
                 if (size == 0) break;
                 fileOffsets.Add(pos, size);
                 s.Seek(size, SeekOrigin.Current);
@@ -141,21 +102,21 @@ namespace CPKReaderWV
         public void ReadHeader(Stream s)
         {
             header = new HeaderStruct();
-            header.MagicNumber = ReadU32(s);
-            header.PackageVersion = ReadU32(s);
-            header.DecompressedFileSize = ReadU64(s);
-            header.Flags = ReadU32(s);
-            header.FileCount = ReadU32(s);
-            header.LocationCount = ReadU32(s);
-            header.HeaderSector = ReadU32(s);
-            header.FileSizeBitCount = ReadU32(s);
-            header.FileLocationCountBitCount = ReadU32(s);
-            header.FileLocationIndexBitCount = ReadU32(s);
-            header.LocationBitCount = ReadU32(s);
-            header.CompSectorToDecomOffsetBitCount = ReadU32(s);
-            header.DecompSectorToCompSectorBitCount = ReadU32(s);
-            header.CRC = ReadU32(s);
-            header.unknown = ReadU32(s); //always 0
+            header.MagicNumber = help.ReadU32(s);
+            header.PackageVersion = help.ReadU32(s);
+            header.DecompressedFileSize = help.ReadU64(s);
+            header.Flags = help.ReadU32(s);
+            header.FileCount = help.ReadU32(s);
+            header.LocationCount = help.ReadU32(s);
+            header.HeaderSector = help.ReadU32(s);
+            header.FileSizeBitCount = help.ReadU32(s);
+            header.FileLocationCountBitCount = help.ReadU32(s);
+            header.FileLocationIndexBitCount = help.ReadU32(s);
+            header.LocationBitCount = help.ReadU32(s);
+            header.CompSectorToDecomOffsetBitCount = help.ReadU32(s);
+            header.DecompSectorToCompSectorBitCount = help.ReadU32(s);
+            header.CRC = help.ReadU32(s);
+            header.unknown = help.ReadU32(s); //always 0
         }
 
         public string PrintHeader()
@@ -199,16 +160,16 @@ namespace CPKReaderWV
             for (int i = 0; i < header.FileCount; i++)
             {
                 sb.Append(i.ToString("d6") + " : ");
-                ulong u1 = ReadBits(BFileInfo, pos, 0x40);
+                ulong u1 = help.ReadBits(BFileInfo, pos, 0x40);
                 fileinfo[i].dwHash = u1;
                 pos += 0x40;
-                ulong u2 = ReadBits(BFileInfo, pos, header.FileSizeBitCount);
+                ulong u2 = help.ReadBits(BFileInfo, pos, header.FileSizeBitCount);
                 fileinfo[i].nSize = (uint)u2;
                 pos += header.FileSizeBitCount;
-                ulong u3 = ReadBits(BFileInfo, pos, header.FileLocationCountBitCount);
+                ulong u3 = help.ReadBits(BFileInfo, pos, header.FileLocationCountBitCount);
                 fileinfo[i].nLocationCount = (uint)u3;
                 pos += header.FileLocationCountBitCount;
-                ulong u4 = ReadBits(BFileInfo, pos, header.FileLocationIndexBitCount);
+                ulong u4 = help.ReadBits(BFileInfo, pos, header.FileLocationIndexBitCount);
                 fileinfo[i].nLocationIndex = (uint)u4;
                 pos += header.FileLocationIndexBitCount;
                 sb.Append("Hash: " + u1.ToString("X16") + " Size: " + u2.ToString() + " LocationCount: " + u3.ToString() + " LocationIndex: " + u4.ToString());
@@ -233,7 +194,7 @@ namespace CPKReaderWV
             for (int i = 0; i < header.LocationCount; i++)
             {
                 sb.Append(i.ToString("d6") + " : ");
-                ulong u1 = ReadBits(block2, pos, header.LocationBitCount);
+                ulong u1 = help.ReadBits(block2, pos, header.LocationBitCount);
                 pos += header.LocationBitCount;
                 sb.Append("0x" + u1.ToString("X8"));
                 sb.AppendLine();
@@ -265,7 +226,7 @@ namespace CPKReaderWV
             for (int i = 0; i < count; i++)
             {
                 sb.Append(i.ToString("d6") + " : ");
-                ulong u1 = ReadBits(block3, pos, header.LocationBitCount);
+                ulong u1 = help.ReadBits(block3, pos, header.LocationBitCount);
                 pos += header.LocationBitCount;
                 sb.Append("0x" + u1.ToString("X8"));
                 sb.AppendLine();
@@ -287,7 +248,7 @@ namespace CPKReaderWV
             e = (e >> 50);
             d += e;
             uint f = (d >> 0xE);
-            uint g = GetHighestBit(HeaderSize);
+            uint g = help.GetHighestBit(HeaderSize);
             uint size = f * g;
             size += 7;
             size = (size >> 3);
@@ -299,7 +260,7 @@ namespace CPKReaderWV
         {
             block5 = new uint[header.FileCount];
             for (int i = 0; i < header.FileCount; i++)
-                block5[i] = ReadU32(s);
+                block5[i] = help.ReadU32(s);
         }
 
         public void ReadFileNames(Stream s)
@@ -309,99 +270,8 @@ namespace CPKReaderWV
             for (int i = 0; i < header.FileCount; i++)
             {
                 s.Seek(pos + block5[i], 0);
-                fileNames[i] = ReadString(s);
+                fileNames[i] = help.ReadString(s);
             }
-        }
-
-        public uint GetHighestBit(uint u)
-        {
-            uint result = 0;
-            while (u != 0)
-            {
-                u = (u >> 1);
-                result++;
-            }
-            return result;
-        }
-
-        public string ReadString(Stream s)
-        {
-            string result = "";
-            char b;
-            while ((b = (char)s.ReadByte()) != (char)0)
-                result += b;
-            return result;
-        }
-
-        public ushort ReadU16(Stream s)
-        {
-            ushort res = 0;
-            res |= (byte)s.ReadByte();
-            res = (ushort)((res << 8) | (byte)s.ReadByte());
-            return res;
-        }
-        public uint ReadU32(Stream s)
-        {
-            uint res = 0;
-            res |= (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            return res;
-        }
-
-        public ulong ReadU64(Stream s)
-        {
-            ulong res = 0;
-            res |= (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            res = (res << 8) | (byte)s.ReadByte();
-            return res;
-        }
-
-        public ulong ReadBits(byte[] buff, uint bitPos, uint bitCount)
-        {
-            ulong result = 0;
-            for (uint i = 0; i < bitCount; i++)
-            {
-                uint pos = bitPos + i;
-                uint bytePos = pos / 8;
-                uint byteBit = 7 - pos % 8;
-                result = result << 1;
-                if ((buff[bytePos] & (1 << (int)byteBit)) != 0)
-                    result |= 1;
-            }
-            return result;
-        }
-
-        public ulong Hash64(string name)
-        {
-            char[] v1 = name.ToCharArray(); 
-            UInt64 result = 0xCBF29CE484222325L;
-            int strlen = name.Length;
-            if (strlen > 0)
-                {
-                        for(int i=0;i<strlen;i++)
-                        result = 0x100000001B3L * (result ^ v1[i]);
-                }
-            return result;
-        }
-
-        public ulong Hash64More(string data, UInt64 previousHash)
-        {
-            char[] v1 = data.ToCharArray();
-            int strlen = data.Length;
-            if (strlen > 0)
-            {
-                for (int i = 0; i < strlen; i++)
-                    previousHash = 0x100000001B3L * (v1[i] ^ previousHash);
-            }
-            return previousHash;
         }
     }
 }
