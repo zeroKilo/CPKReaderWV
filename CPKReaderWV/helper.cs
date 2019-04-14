@@ -99,6 +99,30 @@ namespace CPKReaderWV
             return res;
         }
 
+        public Int32 ReadBinaryInt32(Stream s)
+        {
+            BinaryReader reader = new BinaryReader(s);
+            return reader.ReadInt32();
+        }
+
+        public UInt32 ReadBinaryUInt32(Stream s)
+        {
+            BinaryReader reader = new BinaryReader(s);
+            return reader.ReadUInt32();
+        }
+
+        public Int64 ReadBinaryInt64(Stream s)
+        {
+            BinaryReader reader = new BinaryReader(s);
+            return reader.ReadInt64();
+        }
+
+        public UInt64 ReadBinaryUInt64(Stream s)
+        {
+            BinaryReader reader = new BinaryReader(s);
+            return reader.ReadUInt64();
+        }
+
         public ulong ReadBits(byte[] buff, uint bitPos, uint bitCount)
         {
             ulong result = 0;
@@ -116,7 +140,7 @@ namespace CPKReaderWV
         public ulong Hash64(string name)
         {
             char[] v1 = name.ToCharArray();
-            UInt64 result = 0xCBF29CE484222325L;
+            ulong result = 0xCBF29CE484222325L;
             int strlen = name.Length;
             if (strlen > 0)
             {
@@ -126,7 +150,7 @@ namespace CPKReaderWV
             return result;
         }
 
-        public ulong Hash64More(string data, UInt64 previousHash)
+        public ulong Hash64More(string data, ulong previousHash)
         {
             char[] v1 = data.ToCharArray();
             int strlen = data.Length;
@@ -138,7 +162,7 @@ namespace CPKReaderWV
             return previousHash;
         }
 
-        public ulong GetSubFileHash(UInt64 dwParentHash, string szFilename)
+        public ulong GetSubFileHash(ulong dwParentHash, string szFilename)
         {
             return Hash64More(szFilename.ToLower(), dwParentHash);
         }
@@ -147,5 +171,27 @@ namespace CPKReaderWV
         {
             return Hash64(szFilename.ToLower());
         }
+
+        public bool FindArchiveContaining(string szFilename, CPKFile cpk)
+        {
+            CPKFile.FileInfo[] info = cpk.GetHashTable();
+            ulong hash = GetFileHash(szFilename); //or GetSubFileHash
+            return SearchHashInArchive(hash, info);
+        }
+
+        public bool SearchHashInArchive(ulong dwHash, CPKFile.FileInfo[] ptFileInfo)
+        {
+            bool result = false;
+            for(int i=0;i< ptFileInfo.Length; i++)
+            {
+                if (ptFileInfo[i].dwHash == dwHash)
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return result; 
+        }
+                
     }
 }

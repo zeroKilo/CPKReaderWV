@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,8 +34,8 @@ namespace CPKReaderWV
             public uint DecompSectorToCompSectorBitCount;
             public uint CRC;
             public uint unknown;
-            //public Int32 nReadSectorSize;
-            //public Int32 nCompSectorSize;
+            public int nReadSectorSize;
+            public int nCompSectorSize;
         }
         public struct FileInfo //sizeof = 0x18 , align = 0x8 => HashTable info
         {
@@ -45,6 +46,61 @@ namespace CPKReaderWV
             public uint nLocationIndexOverride;
         }
 
+        public string CPKFilePath;
+        public HeaderStruct Header;
+        public FileInfo HashTable;
 
-}
+
+        public FileStream OpenCPKFile(string Path)
+        {
+            FileStream fs = new FileStream(Path, FileMode.Open, FileAccess.Read);
+            fs.Seek(0, 0);
+            return fs;
+        }
+
+        public void CloseCPKFile(FileStream fs)
+        {
+           fs.Close();
+
+        }
+
+        public int ByteReverse()
+        {
+            FileStream o = OpenCPKFile(CPKFilePath);
+            BinaryReader reader = new BinaryReader(o);
+            uint Magic = reader.ReadUInt32();
+            CloseCPKFile(o);
+            if(Magic.ToString("X8").Equals("A1B2C3D4"))
+                return 1;
+            if (Magic.ToString("X8").Equals("D4C3B2A1"))
+                return 0;
+            else
+                return -1;
+        }
+
+        public uint GetPackageVersion()
+        {
+            int r = ByteReverse();
+            uint version = 0;
+            FileStream o = OpenCPKFile(CPKFilePath);
+            BinaryReader reader = new BinaryReader(o);
+            reader.ReadUInt32();
+            if(r==0)
+                version = reader.ReadUInt32();
+                byte[] bytes = BitConverter.GetBytes(version);
+                Array.Reverse(bytes);
+                version = BitConverter.ToUInt32(bytes, 0);
+            if (r==1)
+                version = reader.ReadUInt32();
+            CloseCPKFile(o);
+            return version;
+        }
+
+        public FileInfo[] GetHashTable()
+        {
+            FileInfo[] result = new FileInfo[Header.FileCount];
+            // add values
+            return result;
+        }
+    }
 }

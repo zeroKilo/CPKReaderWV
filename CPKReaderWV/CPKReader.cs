@@ -10,6 +10,7 @@ namespace CPKReaderWV
 {
     public class CPKReader
     {
+        public string cpkpath;
         public helper help;
         public CPKFile cpkfile;
         public uint fileSize;
@@ -22,13 +23,14 @@ namespace CPKReaderWV
         public uint[] block5;
         public string[] fileNames;
         public Dictionary<uint, uint> fileOffsets;
-        public string cpkpath;
+        
 
         public CPKReader(string path)
         {
-            cpkpath = path;
             help = new helper();
             cpkfile = new CPKFile();
+            cpkfile.CPKFilePath = path;
+            //Console.WriteLine("Reverse: " + cpkfile.ByteReverse() +"\t Version: "+ cpkfile.GetPackageVersion());
             FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read);
             fs.Seek(0, SeekOrigin.End);
             fileSize = (uint)fs.Position;
