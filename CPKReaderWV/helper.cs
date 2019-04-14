@@ -99,6 +99,17 @@ namespace CPKReaderWV
             return res;
         }
 
+        public Int16 ReadBinaryInt16(Stream s)
+        {
+            BinaryReader reader = new BinaryReader(s);
+            return reader.ReadInt16();
+        }
+        public UInt16 ReadBinaryUInt16(Stream s)
+        {
+            BinaryReader reader = new BinaryReader(s);
+            return reader.ReadUInt16();
+        }
+
         public Int32 ReadBinaryInt32(Stream s)
         {
             BinaryReader reader = new BinaryReader(s);
@@ -137,6 +148,119 @@ namespace CPKReaderWV
             }
             return result;
         }
+        public string ReverseString(string source)
+        {
+            char[] dest = source.ToArray();
+            string result = "";
+            for (int i = dest.Length -1; i >= 0; i--)
+                result += dest[i];
+            return result;
+        }
+
+        public Int16 ReverseInt16(Int16 x)
+        {
+            byte[] bytes = BitConverter.GetBytes(x);
+            Array.Reverse(bytes);
+            x = BitConverter.ToInt16(bytes, 0);
+            return x;
+        }
+
+        public UInt16 ReverseUInt16(UInt16 x)
+        {
+            byte[] bytes = BitConverter.GetBytes(x);
+            Array.Reverse(bytes);
+            x = BitConverter.ToUInt16(bytes, 0);
+            return x;
+        }
+
+        public Int32 ReverseInt32(Int32 x)
+        {
+            byte[] bytes = BitConverter.GetBytes(x);
+            Array.Reverse(bytes);
+            x = BitConverter.ToInt32(bytes, 0);
+            return x;
+        }
+
+        public UInt32 ReverseUInt32(UInt32 x)
+        {
+            byte[] bytes = BitConverter.GetBytes(x);
+            Array.Reverse(bytes);
+            x = BitConverter.ToUInt32(bytes, 0);
+            return x;
+        }
+
+        public Int64 ReverseInt64(Int64 x)
+        {
+            byte[] bytes = BitConverter.GetBytes(x);
+            Array.Reverse(bytes);
+            x = BitConverter.ToInt64(bytes, 0);
+            return x;
+        }
+
+        public UInt64 ReverseUInt64(UInt64 x)
+        {
+            byte[] bytes = BitConverter.GetBytes(x);
+            Array.Reverse(bytes);
+            x = BitConverter.ToUInt64(bytes, 0);
+            return x;
+        }
+
+        public Int16 RInt16(Stream s, int r)
+        {
+            if (r == 0)
+                return ReverseInt16(ReadBinaryInt16(s));
+            else
+                return ReadBinaryInt16(s);
+        }
+
+        public UInt16 RUInt16(Stream s, int r)
+        {
+            if (r == 0)
+                return ReverseUInt16(ReadBinaryUInt16(s));
+            else
+                return ReadBinaryUInt16(s);
+        }
+
+        public Int32 RInt32(Stream s, int r)
+        {
+            if (r == 0)
+                return ReverseInt32(ReadBinaryInt32(s));
+            else
+                return ReadBinaryInt32(s);
+        }
+
+        public UInt32 RUInt32(Stream s, int r)
+        {
+            if (r == 0)
+                return ReverseUInt32(ReadBinaryUInt32(s));
+            else
+                return ReadBinaryUInt32(s);
+        }
+
+        public Int64 RInt64(Stream s, int r)
+        {
+            if (r == 0)
+                return ReverseInt64(ReadBinaryInt64(s));
+            else
+                return ReadBinaryInt64(s);
+        }
+
+        public UInt64 RUInt64(Stream s, int r)
+        {
+            if (r == 0)
+                return ReverseUInt64(ReadBinaryUInt64(s));
+            else
+                return ReadBinaryUInt64(s);
+        }
+
+        public string RString(Stream s, int r)
+        {
+            if (r == 0)
+                return ReverseString(ReadString(s));
+            else
+                return ReadString(s);
+        }
+
         public ulong Hash64(string name)
         {
             char[] v1 = name.ToCharArray();

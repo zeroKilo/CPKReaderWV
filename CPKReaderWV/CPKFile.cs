@@ -11,13 +11,9 @@ namespace CPKReaderWV
     {
         //version 6
         //nCurrentReadOffset = 64; // (Int64)
-        //nReadSectorSize = 0x10000;
-        //nCompSectorSize = 0x4000;
         //version 7
-        //nReadSectorSize_var = read from HeaderStruct;
-        //nCompSectorSize = read from HeaderStruct;
         //nCurrentReadOffset = 72; // (Int64)
-        public struct HeaderStruct // using CPK_VERSION = 6,
+        public struct HeaderStruct 
         {
             public uint MagicNumber; //always CPK_MAGIC_NUMBER = A1B2C3D4 
             public uint PackageVersion;
@@ -46,9 +42,13 @@ namespace CPKReaderWV
             public uint nLocationIndexOverride;
         }
 
+
         public string CPKFilePath;
         public HeaderStruct Header;
-        public FileInfo HashTable;
+        public uint nCurrentReadOffset = 64;
+        public FileInfo[] HashTable;
+        public helper help;
+        public int Reverse = -1;
 
 
         public FileStream OpenCPKFile(string Path)
@@ -64,42 +64,99 @@ namespace CPKReaderWV
 
         }
 
-        public int ByteReverse()
+        public void IsByteReverse()
         {
             FileStream o = OpenCPKFile(CPKFilePath);
             BinaryReader reader = new BinaryReader(o);
             uint Magic = reader.ReadUInt32();
             CloseCPKFile(o);
             if(Magic.ToString("X8").Equals("A1B2C3D4"))
-                return 1;
+                Reverse = 1;
             if (Magic.ToString("X8").Equals("D4C3B2A1"))
-                return 0;
+                Reverse = 0;
             else
-                return -1;
+                Reverse = -1;
         }
 
-        public uint GetPackageVersion()
+        public void GetPackageVersion()
         {
-            int r = ByteReverse();
-            uint version = 0;
             FileStream o = OpenCPKFile(CPKFilePath);
-            BinaryReader reader = new BinaryReader(o);
-            reader.ReadUInt32();
-            if(r==0)
-                version = reader.ReadUInt32();
-                byte[] bytes = BitConverter.GetBytes(version);
-                Array.Reverse(bytes);
-                version = BitConverter.ToUInt32(bytes, 0);
-            if (r==1)
-                version = reader.ReadUInt32();
+            Header.MagicNumber = help.RUInt32(o, Reverse);
+            Header.PackageVersion = help.RUInt32(o, Reverse);
             CloseCPKFile(o);
-            return version;
+        }
+
+        public HeaderStruct ReadHeader(Stream s)
+        {
+            FileStream o = OpenCPKFile(CPKFilePath);
+            Header.MagicNumber = help.RUInt32(o, Reverse);
+            Header.PackageVersion = help.RUInt32(o, Reverse);
+            Header.DecompressedFileSize = help.RUInt64(s, Reverse);
+            Header.Flags = help.RUInt32(s,Reverse);
+            Header.FileCount = help.RUInt32(s, Reverse);
+            Header.LocationCount = help.RUInt32(s, Reverse);
+            Header.HeaderSector = help.RUInt32(s, Reverse);
+            Header.FileSizeBitCount = help.RUInt32(s, Reverse);
+            Header.FileLocationCountBitCount = help.RUInt32(s, Reverse);
+            Header.FileLocationIndexBitCount = help.RUInt32(s, Reverse);
+            Header.LocationBitCount = help.RUInt32(s, Reverse);
+            Header.CompSectorToDecomOffsetBitCount = help.RUInt32(s, Reverse);
+            Header.DecompSectorToCompSectorBitCount = help.RUInt32(s, Reverse);
+            Header.CRC = help.RUInt32(s, Reverse);
+            if (Header.PackageVersion == 6)
+            {
+                Header.unknown = help.ReadU32(s); //always 0
+                Header.nReadSectorSize = 0x10000;
+                Header.nCompSectorSize = 0x4000;
+            }
+            if (Header.PackageVersion == 7)
+            {
+                Header.nReadSectorSize = help.RInt32(o, Reverse);
+                Header.nCompSectorSize = help.RInt32(o, Reverse);
+            }
+            CloseCPKFile(o);
+            return Header;
+        }
+
+        public byte[] ReadHashTable(Stream s)
+        {
+            uint size = nCurrentReadOffset;
+            size += Header.FileSizeBitCount;
+            size += Header.FileLocationCountBitCount;
+            size += Header.FileLocationIndexBitCount;
+            size *= Header.FileCount;
+            size += 7;
+            size = size >> 3;
+            byte[] BFileInfo = new byte[size];
+            s.Read(BFileInfo, 0, (int)size);
+            return BFileInfo;
         }
 
         public FileInfo[] GetHashTable()
         {
             FileInfo[] result = new FileInfo[Header.FileCount];
-            // add values
+            FileStream o = OpenCPKFile(CPKFilePath);
+            o.Position = 64;
+            byte[] Htable = ReadHashTable(o);
+            uint position = 0;
+            for(int i=0;i< Header.FileCount;i++ )
+            {
+                result[i].dwHash = (uint)help.ReadBits(Htable, position, 64);
+                position += 64;
+                result[i].nSize =  (uint)help.ReadBits(Htable, position, Header.FileSizeBitCount);
+                position += Header.FileSizeBitCount;
+                result[i].nLocationCount = (uint)help.ReadBits(Htable, position, Header.FileLocationCountBitCount);
+                position += Header.FileLocationCountBitCount;
+                result[i].nLocationIndex = (uint)help.ReadBits(Htable, position, Header.FileLocationIndexBitCount);
+                position += Header.FileLocationIndexBitCount;
+                if(Reverse==1)
+                {
+                    result[i].dwHash = help.ReverseUInt64(result[i].dwHash);
+                    result[i].nSize = help.ReverseUInt32(result[i].nSize);
+                    result[i].nLocationCount = help.ReverseUInt32(result[i].nLocationCount);
+                    result[i].nLocationIndex = help.ReverseUInt32(result[i].nLocationIndex);
+                }
+            }
             return result;
         }
     }
