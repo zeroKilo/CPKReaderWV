@@ -9,10 +9,6 @@ namespace CPKReaderWV
 {
     public class CPKFile
     {
-        //version 6
-        //nCurrentReadOffset = 64; // (Int64)
-        //version 7
-        //nCurrentReadOffset = 72; // (Int64)
         public struct HeaderStruct 
         {
             public uint MagicNumber; //always CPK_MAGIC_NUMBER = A1B2C3D4 
@@ -42,13 +38,16 @@ namespace CPKReaderWV
             public uint nLocationIndexOverride;
         }
 
-
         public string CPKFilePath;
         public HeaderStruct Header;
-        public uint nCurrentReadOffset = 64;
         public FileInfo[] HashTable;
         public helper help;
         public int Reverse = -1;
+        public uint nCurrentReadOffset = 64;
+        //version 6
+        //nCurrentReadOffset = 64; 
+        //version 7
+        //nCurrentReadOffset = 72; 
 
 
         public FileStream OpenCPKFile(string Path)
@@ -81,7 +80,7 @@ namespace CPKReaderWV
         public void GetPackageVersion()
         {
             FileStream o = OpenCPKFile(CPKFilePath);
-            Header.MagicNumber = help.RUInt32(o, Reverse);
+            Header.MagicNumber = help.RUInt32(o, Reverse); //should skip to next, not read
             Header.PackageVersion = help.RUInt32(o, Reverse);
             CloseCPKFile(o);
         }
@@ -120,7 +119,7 @@ namespace CPKReaderWV
 
         public byte[] ReadHashTable(Stream s)
         {
-            uint size = nCurrentReadOffset;
+            uint size = 64;
             size += Header.FileSizeBitCount;
             size += Header.FileLocationCountBitCount;
             size += Header.FileLocationIndexBitCount;

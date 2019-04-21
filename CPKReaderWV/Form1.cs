@@ -16,6 +16,7 @@ namespace CPKReaderWV
     public partial class Form1 : Form
     {
         public CPKReader cpk;
+        public string tempapath;
 
         public Form1()
         {
@@ -29,6 +30,7 @@ namespace CPKReaderWV
             if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 status.Text = d.FileName;
+                tempapath = d.FileName;
                 cpk = new CPKReader(d.FileName);
                 RefreshAll();
             }
@@ -37,8 +39,8 @@ namespace CPKReaderWV
         private void RefreshAll()
         {
             rtb1.Text = cpk.PrintHeader();
-            rtb2.Text = cpk.PrintBlock1();
-            rtb3.Text = cpk.PrintLocation();
+            rtb2.Text = cpk.PrintFileInfoBlock();
+            rtb3.Text = cpk.PrintLocationBlock();
             rtb4.Text = cpk.PrintBlock3();
             hb3.ByteProvider = new DynamicByteProvider(cpk.block4);
             listBox1.Items.Clear();
@@ -59,6 +61,7 @@ namespace CPKReaderWV
             int n = listBox3.SelectedIndex;
             if (n == -1) return;
             KeyValuePair<uint, uint> pair = cpk.fileOffsets.ToArray()[n];
+            cpk.cpkpath = tempapath;
             FileStream fs = new FileStream(cpk.cpkpath, FileMode.Open, FileAccess.Read);
             fs.Seek(pair.Key + 6, 0);
             byte[] buff = new byte[pair.Value];

@@ -36,8 +36,8 @@ namespace CPKReaderWV
             fileSize = (uint)fs.Position;
             fs.Seek(0, 0);
             ReadHeader(fs);
-            ReadBlock1(fs);
-            ReadLocation(fs);
+            FileInfoBlock(fs);
+            ReadLocationBlock(fs);
             ReadBlock3(fs);
             ReadBlock4(fs);
             ReadBlock5(fs);
@@ -102,10 +102,11 @@ namespace CPKReaderWV
             sb.AppendLine("CompSectorToDecomOffsetBitCount : " + header.CompSectorToDecomOffsetBitCount.ToString());
             sb.AppendLine("DecompSectorToCompSectorBitCount : " + header.DecompSectorToCompSectorBitCount.ToString());
             sb.AppendLine("CRC : " + header.CRC.ToString(""));
+            sb.AppendLine("SectorCount : " + (uint)(fileSize / 0x10000));
             return sb.ToString();
         }
 
-        public void ReadBlock1(Stream s)
+        public void FileInfoBlock(Stream s)
         {
             uint size = 0x40;
             size += header.FileSizeBitCount;
@@ -115,17 +116,18 @@ namespace CPKReaderWV
             size += 7;
             size = size >> 3;
             BFileInfo = new byte[size];
+            Console.WriteLine("Size of HashTableBlock: " + size);
             s.Read(BFileInfo, 0, (int)size);
         }
 
-        public string PrintBlock1()
+        public string PrintFileInfoBlock()
         {
             fileinfo = new CPKFile.FileInfo[header.FileCount];
             StringBuilder sb = new StringBuilder();
             uint pos = 0;
             for (int i = 0; i < header.FileCount; i++)
             {
-                sb.Append(i.ToString("d6") + " : ");
+                sb.Append((i+1).ToString("d6") + " : ");
                 ulong u1 = help.ReadBits(BFileInfo, pos, 0x40);
                 fileinfo[i].dwHash = u1;
                 pos += 0x40;
@@ -138,13 +140,13 @@ namespace CPKReaderWV
                 ulong u4 = help.ReadBits(BFileInfo, pos, header.FileLocationIndexBitCount);
                 fileinfo[i].nLocationIndex = (uint)u4;
                 pos += header.FileLocationIndexBitCount;
-                sb.Append("Hash: " + u1.ToString("X16") + " Size: " + u2.ToString() + " LocationCount: " + u3.ToString() + " LocationIndex: " + u4.ToString());
+                sb.Append("Hash: " + u1.ToString("X16") + " Size: " + u2.ToString() + " LocationCount: " + u3.ToString() + " LocationIndex: " + u4.ToString("d6"));
                 sb.AppendLine();
             }
             return sb.ToString();
         }
 
-        public void ReadLocation(Stream s)
+        public void ReadLocationBlock(Stream s)
         {
             uint size = header.LocationBitCount * header.LocationCount;
             size += 7;
@@ -153,13 +155,14 @@ namespace CPKReaderWV
             s.Read(block2, 0, (int)size);
         }
 
-        public string PrintLocation()
+        public string PrintLocationBlock()
         {
             StringBuilder sb = new StringBuilder();
             uint pos = 0;
+            sb.AppendLine("Location index => Location");
             for (int i = 0; i < header.LocationCount; i++)
             {
-                sb.Append(i.ToString("d6") + " : ");
+                sb.Append((i).ToString("d6") + " : ");
                 ulong u1 = help.ReadBits(block2, pos, header.LocationBitCount);
                 pos += header.LocationBitCount;
                 sb.Append("0x" + u1.ToString("X8"));
@@ -189,9 +192,10 @@ namespace CPKReaderWV
             StringBuilder sb = new StringBuilder();
             uint pos = 0;
             uint count = (uint)(block3.Length * 8) / header.LocationBitCount;
+            sb.AppendLine("Index : Chunk_Offset_Position");
             for (int i = 0; i < count; i++)
             {
-                sb.Append(i.ToString("d6") + " : ");
+                sb.Append((i+1).ToString("d6") + " : ");
                 ulong u1 = help.ReadBits(block3, pos, header.LocationBitCount);
                 pos += header.LocationBitCount;
                 sb.Append("0x" + u1.ToString("X8"));
@@ -205,6 +209,7 @@ namespace CPKReaderWV
             uint HeaderSize = (uint)CPKArchiveSizes.CPK_READ_SECTOR_SIZE * header.HeaderSector;
             HeaderSize = fileSize - HeaderSize;
             HeaderSize += 0x3FFF;
+            //HeaderSize += (uint)CPKArchiveSizes.CPK_COMP_SECTOR_SIZE;
             uint c = (HeaderSize >> 0xD);
             c = (c >> 50);
             HeaderSize += c;
